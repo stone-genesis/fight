@@ -1,0 +1,174 @@
+# 模块机制使用 Demo
+
+## 基本用法
+
+### 1. 创建模块文件 `math_utils.fight`
+
+```javascript
+# 定义变量
+let pi: float = 3.14159;
+let e: float = 2.71828;
+
+# 定义函数
+def add(x, y) {
+    return x + y;
+}
+
+def multiply(x, y) {
+    return x * y;
+}
+
+def square(n) {
+    return n * n;
+}
+
+# 私有函数（不导出）
+def helper() {
+    return 100;
+}
+
+# 声明导出内容（必须放在文件末尾）
+exports = [
+    "pi",
+    "e",
+    "add",
+    "multiply",
+    "square"
+]
+```
+
+### 2. 主文件 `main.fight` 中使用
+
+```javascript
+# 从第三方模块导入（使用路径字符串）
+use (pi, add, square) from "math_utils.fight";
+
+# 使用导入的变量
+println(pi);           # 输出: 3.14159
+
+# 使用导入的函数
+let sum: int = add(10, 20);
+println(sum);          # 输出: 30
+
+let result: int = square(5);
+println(result);       # 输出: 25
+```
+
+---
+
+## 内置模块用法
+
+### 从内置模块导入（无引号）
+
+```javascript
+# 内置模块不需要引号，会从 interpreter/builtin/ 目录查找
+use (pi, sqrt) from Math;
+
+println(pi);
+let r: float = sqrt(16);
+println(r);  # 输出: 4.0
+```
+
+---
+
+## 完整示例
+
+### 模块文件 `utils.fight`
+
+```javascript
+# 常量
+let VERSION: string = "1.0.0";
+let MAX_SIZE: int = 100;
+
+# 工具函数
+def greet(name) {
+    return "Hello, " + name + "!";
+}
+
+def sum_list(lst) {
+    let total: int = 0;
+    for(item in lst) {
+        total += item;
+    }
+    return total;
+}
+
+# 类定义
+class Calculator {
+    fields {
+        Value = 0;
+    }
+
+    init(v) {
+        Value = v;
+    }
+
+    methods {
+        def Add(n) {
+            Value = Value + n;
+            return Value;
+        }
+
+        def GetValue() {
+            return Value;
+        }
+    }
+}
+
+# 导出声明
+exports = [
+    "VERSION",
+    "MAX_SIZE",
+    "greet",
+    "sum_list",
+    "Calculator"
+]
+```
+
+### 主文件 `app.fight`
+
+```javascript
+# 导入需要的内容
+use (VERSION, greet, sum_list, Calculator) from "utils.fight";
+
+# 使用常量
+println(VERSION);  # 输出: 1.0.0
+
+# 使用函数
+let msg: string = greet("World");
+println(msg);  # 输出: Hello, World!
+
+let numbers: list = [1, 2, 3, 4, 5];
+let total: int = sum_list(numbers);
+println(total);  # 输出: 15
+
+# 使用类（如果支持导出类）
+let calc: Calculator = new Calculator(10);
+calc->Add(5);
+println(calc->GetValue());  # 输出: 15
+```
+
+---
+
+## 语法总结
+
+| 语法 | 说明 |
+|------|------|
+| `use (a, b) from "path.fight";` | 从第三方模块导入 |
+| `use (a, b) from ModuleName;` | 从内置模块导入 |
+| `exports = ["a", "b", "c"]` | 声明模块导出（放文件末尾） |
+
+---
+
+## 注意事项
+
+1. **exports 必须放在模块文件末尾**（Parser 取 `pkg_ast[-1]` 作为 exports 节点）
+
+2. **只能导入 exports 中声明的内容**，否则报错：
+   ```
+   Exception: Module xxx does not export yyy
+   ```
+
+3. **模块有独立环境**，导出的函数通过闭包保持对模块内部变量的访问
+
+4. **内置模块路径**：`interpreter/builtin/模块名.fight`

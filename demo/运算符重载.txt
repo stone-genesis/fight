@@ -1,0 +1,110 @@
+        class Vector{
+            fields{
+                x = 0;
+                y = 0;
+            }
+
+            operators{
+                def plus(other){
+                    let result_x = this->x + other->x;
+                    let result_y = this->y + other->y;
+                    let result = new Vector(result_x, result_y);
+                    return result;
+                }
+
+                def minus(other){
+                    let result_x = this->x - other->x;
+                    let result_y = this->y - other->y;
+                    let result = new Vector(result_x, result_y);
+                    return result;
+                }
+
+                def multiply(scalar){
+                    let result_x = this->x * scalar;
+                    let result_y = this->y * scalar;
+                    let result = new Vector(result_x, result_y);
+                    return result;
+                }
+            }
+
+            methods{
+                def SetX(x){
+                    this->x = x;
+                }
+                def ToString(){
+                    return "Vector(" + this->x + ", " + this->y + ")";
+                }
+            }
+
+            init(x, y){
+                this->x = x;
+                this->y = y;
+                println("x: ${this->x}");
+            }
+
+            init(){
+                this->x = 0;
+                this->y = 0;
+                println("x: ${this->x}");
+            }
+        }
+
+        let v1 = new Vector(3, 4);
+        let v2 = new Vector(1, 2);
+
+        println("原始向量:");
+        println(v1);
+        println(v2);
+
+        let v3 = v1 + v2;
+        println("\nv1 + v2 = ");
+        println(v3);
+
+        let v4 = v1 - v2;
+        println("\nv1 - v2 = ");
+        println(v4);
+
+        let v5 = v1 * 2;
+        println("\nv1 * 2 = ");
+        println(v5);
+
+        println("v1: ",v1);
+        v1->SetX(666);
+        println("v1: ",v1);
+
+######################例子2##########################
+      class Vector{
+            fields{
+                x = 0;
+                y = 0;
+            }
+            operators{
+                def plus(other){
+                    let rx = this->x + other->x;
+                    let ry = this->y + other->y;
+                    return new Vector(rx, ry);
+                }
+                def multiply(scalar){
+                    return new Vector(this->x * scalar, this->y * scalar);
+                }
+
+                def eq(other){
+                    return (this->x == other->x) and (this->y == other->y);
+                }
+                def divide(other){
+                    return new Vector(this->x / other->x, this->y / other->y);
+                }
+            }
+            methods{
+                def ToString(){
+                    return "Vector(" + this->x + ", " + this->y + ")";
+                }
+            }
+            init(x, y){
+                this->x = x;
+                this->y = y;
+            }
+        }
+        let v1 = new Vector(3, 4);
+        let v2 = new Vector(6, 8);
+        println(v2/v1);

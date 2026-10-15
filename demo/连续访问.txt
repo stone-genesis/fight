@@ -1,0 +1,23 @@
+  def validateEmail(email) {
+            return( email->contains("@") and email->contains("."));
+        }
+
+        def processUsername(username) {
+            let cleaned = username->strip()->lower();
+            let isValid = (cleaned->length() >= 3) and (cleaned->length() <= 20);
+
+            if(isValid) {
+                return cleaned;
+            }
+            return "invalid";
+        }
+        let rawData = {
+            username: "  Alice  ",
+            email: "alice.li@company.com",
+            tags: ["developer", "designer", "manager"]
+        };
+        let username = processUsername(rawData{"username"});
+        println("处理后的用户名: " + username);
+
+        let emailValid = validateEmail(rawData{"email"});
+        println("邮箱是否有效: ",emailValid);

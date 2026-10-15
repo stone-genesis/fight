@@ -1,0 +1,30 @@
+ class Stack{
+          fields{
+             innerStack = [];
+          }
+          methods{
+            def Push(x){
+                  innerStack->append(x);
+            }
+            def Pop(){
+                  if(innerStack->length() > 0){
+                     let temp = innerStack[innerStack->length()-1];
+                     innerStack->removeAt(innerStack->length()-1);
+                     return temp;
+                  }
+            }
+            def IsEmpty(){
+                return innerStack->length() == 0;
+            }
+            def Size(){
+                return innerStack->length();
+            }
+            def Peek(){
+                if(this->Size() > 0){
+                    return innerStack[innerStack->length()-1];
+                }
+            }
+          }
+          init(){}
+}
+exports = ["Stack"]

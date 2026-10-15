@@ -1,0 +1,6 @@
+ let {a, b} = {a: 1, b: 2};
+let [x, _, y] = [1, 2, 3];
+println("a = ",a,"x = ",x);
+println("y = ",y);
+let z = if(x==1) True : False;
+println("z = ",z);

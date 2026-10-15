@@ -1,0 +1,152 @@
+# Reflect Module - 反射模块 #
+# 提供运行时类型检查、实例检查和类元数据访问功能 #
+
+# ==================== 类型检查 ==================== #
+
+# 检查一个实例是否属于某个类 #
+# @param instance 类实例对象 #
+# @param className 类名（字符串） #
+# @return 布尔值 #
+def isInstance(instance, className){
+    return IsInstance(instance, className);
+}
+
+# 检查一个类是否实现了某个接口 #
+# @param className 类名（字符串） #
+# @param interfaceName 接口名（字符串） #
+# @return 布尔值 #
+def hasImplInterface(className, interfaceName){
+    return HasImplInterface(className, interfaceName);
+}
+
+# ==================== 类元数据访问 ==================== #
+
+# 通过类名获取类的字段定义 #
+# @param className 类名（字符串） #
+# @return 字段字典 {fieldName: fieldValue} #
+def classFields(className){
+    return GetFieldsByClassName(className);
+}
+
+# ==================== 实例元数据访问 ==================== #
+
+#可行#
+# 获取实例的所有字段 #
+# @param instance 实例对象 #
+# @return 字段字典 {fieldName: fieldValue} #
+def instanceFields(instance){
+    return GetInstanceFields(instance);
+}
+
+# 获取实例的所有方法信息 #
+# @param instance 实例对象 #
+# @return 方法信息列表 [{method_name, args, default_values}] #
+def instanceMethods(instance){
+    return GetInstanceMethods(instance);
+}
+
+# 设置实例的字段值 #
+# @param instance 实例对象 #
+# @param fieldValues 字段和值的字典 {field: value} #
+# @return 布尔值，表示是否成功 #
+def setInstanceField(instance, fieldValues){
+    return SetInstanceField(instance, fieldValues);
+}
+
+# 调用实例的方法 #
+# @param instance 实例对象 #
+# @param methodName 方法名（字符串） #
+# @param args 参数字典（命名参数） #
+# @return 方法返回值 #
+def invokeInstanceMethod(instance, methodName, args){
+    return InvokeInstanceMethod(instance, methodName, args);
+}
+
+# ==================== 注解访问 ====================#
+
+# 获取实例方法的注解 #
+# @param instance 实例对象 #
+# @param methodName 方法名（字符串） #
+# @return 注解字典 {key: value} #
+def methodAnnotations(instance, methodName){
+    return GetMethodAnnotations(instance, methodName);
+}
+
+# 获取实例字段的注解 #
+# @param instance 实例对象 #
+# @param fieldName 字段名（字符串） #
+# @return 注解字典 {fieldName: annotation} #
+def fieldAnnotations(instance, fieldName){
+    return GetFieldAnnotations(instance, fieldName);
+}
+
+# ==================== 函数反射 ====================#
+
+#测试可行#
+# 通过函数名获取函数的参数列表 #
+# @param funcName 函数名（字符串） #
+# @return 参数名列表 [param1, param2, ...] #
+def getParamsByName(funcName){
+    return GetParamsByName(funcName);
+}
+
+
+#测试可行#
+# 通过函数名获取函数的默认参数值 #
+# @param funcName 函数名（字符串） #
+# @return 默认参数字典 {paramName: defaultValue} #
+def defaultValues(funcName){
+    return GetDefaultValues(funcName);
+}
+
+#测试可行#
+# 通过函数名调用函数 #
+# @param funcName 函数名（字符串） #
+# @param params 参数字典（命名参数） #
+# @return 函数返回值 #
+def invokeFunc(funcName, params){
+    return InvokeFunc(funcName, params);
+}
+
+# ==================== 导出列表 ====================#
+
+exports = [
+    "isInstance",
+    "hasImplInterface",
+    "classFields",
+    "instanceFields",
+    "instanceMethods",
+    "setInstanceField",
+    "invokeInstanceMethod",
+    "methodAnnotations",
+    "fieldAnnotations",
+    "getParamsByName",
+    "defaultValues",
+    "invokeFunc"
+]
+
+#
+#         import reflect
+#         class Person {
+#             fields {
+#                 Name = "Alice";
+#                 Age = 25;
+#             }
+#             methods {
+#                 def GetInfo() {
+#                     return "Name: " + Name + ", Age: " + Age;
+#                 }
+#             }
+#             init() {}
+#         }
+#         let p = reflect.classFields("Person");
+#         println(p);
+#
+#         def add(x,y=1){
+#             println("x+y=${x+y}");
+#         }
+#         let vals = reflect.defaultValues("add");
+#         println("vals: ",vals);
+#
+#         reflect.invokeFunc("add",{x:1,y:1});
+#

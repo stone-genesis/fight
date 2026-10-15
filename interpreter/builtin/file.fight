@@ -1,0 +1,41 @@
+ class file {
+        fields {
+            Path = "";
+            IsExists = False;
+        }
+
+        init(path) {
+            this->Path = path;
+            this->IsExists = f_exists(path);
+        }
+
+        methods {
+            def Read() {
+                if (IsExists) {
+                    return f_open_read(Path);
+                }
+                return "";
+            }
+            def Write(content) {
+                f_write(Path, content);
+                IsExists = True;
+            }
+
+            def Append(content) {
+                return f_append(Path, content);
+            }
+
+            def Delete() {
+                IsExists = False;
+                return f_delete(Path);
+            }
+            def Exists() {
+                return  f_exists(Path);
+            }
+             def Size(){
+                return f_size(Path);
+            }
+        }
+   }
+
+exports = ["file"]

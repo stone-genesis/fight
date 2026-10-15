@@ -1,0 +1,58 @@
+def currentWorkDir(){
+		return GetCurrentDirectory();
+}
+
+def  changeDirectory(path){
+		ChangeDirectory(path);
+}
+
+def listDir(dir){
+	return ListDirectory(dir);
+}
+
+def createDir(dir){
+	CreateDirectory(dir);
+}
+
+def removeFile(dir){
+		RemoveFile(dir);
+}
+def fileExists(filePath){
+	return FileExists(filePath);
+}
+
+def isDirectory(dir){
+	return IsDirectory(dir);
+}
+
+def isFile(dir) => return IsFile(dir);
+
+def absolutePath(dir) => return GetAbsolutePath(dir);
+
+def copyFile(src,dst) {
+	if(!isFile(src)) {
+		return False;
+	}
+	CopyFile(src,dst);
+}
+
+def moveFile(src,dst) {
+	if(!isFile(src) || !fileExists(src)){
+		return False;
+	}
+	MoveFile(src,dst);
+}
+ 
+exports  = [
+	'currentWorkDir',
+	'changeDirectory',
+	'listDir',
+	'createDir',
+	'removeFile',
+	'fileExists',
+	'isDirectory',
+	'isFile',
+	'absolutePath',
+	'copyFile',
+	'moveFile',
+]

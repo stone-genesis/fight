@@ -1,0 +1,32 @@
+def sleep(seconds){
+    f_Sleep(seconds);
+}
+
+def currentTime(){
+    return f_GetCurrentTimeObj();
+}
+
+def timestamp(){
+    return f_GetTimestamp();
+}
+
+def formatTime(format){
+    return f_FormatTime(format);
+}
+
+def parseTime(timeString,format){
+    return f_ParseTime(timeString,format);
+}
+
+def timeNs(){
+    return f_TimeNs();
+}
+
+exports = [
+    "sleep",
+    "currentTime",
+    "timestamp",
+    "formatTime",
+    "parseTime",
+    "timeNs",
+]

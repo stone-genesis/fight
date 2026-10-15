@@ -1,0 +1,29 @@
+class Pos{
+    fields{
+        X = -1;
+        Y = -1;
+        static Origin = {x:10,y:20}
+    }
+    methods{
+        def SetPos(x,y){
+            this->X = x;
+            this->Y = y;
+        }
+        def SetX(x){
+            this->X = x;
+            return this;
+        }
+        def SetY(y){
+            this->Y = y;
+        }
+    }
+    init(){}
+}
+let p = new Pos();
+p->X = 10;
+p->Y = 20;
+println(p->X, p->Y);
+
+println(Pos->Origin);
+Pos->Origin = {x:30,y:40}
+println(Pos->Origin);

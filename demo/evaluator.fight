@@ -1,0 +1,161 @@
+let TOKENS = [];
+let POS = [0];
+let VARS = {pi: 3.14159, e: 2.71828};
+
+def tokenize(src) {
+    TOKENS->clear();
+    let i = 0;
+    let n = src->length();
+    loop(i < n) {
+        let c = src->charAt(i);
+        if(c->isSpace()) {
+            i += 1;
+        } elif(c->isDigit() or (c == ".")) {
+            let num = "";
+            loop(i < n) {
+                let d = src->charAt(i);
+                if(d->isDigit() or (d == ".")) {
+                    num = num + d;
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+            TOKENS->append(num);
+        } elif(c->isAlpha()) {
+            let id = "";
+            loop(i < n) {
+                let d = src->charAt(i);
+                if(d->isAlphaNum()) {
+                    id = id + d;
+                    i += 1;
+                } else {
+                    break;
+                }
+            }
+            TOKENS->append(id);
+        } else {
+            TOKENS->append(c);
+            i += 1;
+        }
+    }
+}
+
+def peek() {
+    if(POS[0] < TOKENS->length()) {
+        return TOKENS[POS[0]];
+    }
+    return "";
+}
+
+def advance() {
+    let t = peek();
+    POS[0] = POS[0] + 1;
+    return t;
+}
+
+def parseAtom() {
+    let t = advance();
+    if(t == "(") {
+        let v = parseExpr();
+        advance();
+        return v;
+    }
+    if(t->length() == 0) {
+        println("错误: 表达式意外结束");
+        return 0;
+    }
+    let c = t->charAt(0);
+    if(c->isDigit()) {
+        if(t->contains(".")) {
+            return toNumber(t);
+        }
+        return toInt(t);
+    }
+    if(VARS->hasKey(t)) {
+        return VARS->getValue(t);
+    }
+    println("错误: 未知标识符 ", t);
+    return 0;
+}
+
+def parsePower() {
+    let base = parseAtom();
+    if(peek() == "^") {
+        advance();
+        # 右操作数走 parseFactor，保证 2^3^2 = 2^(3^2) 右结合 #
+        let exp = parseFactor();
+        return base ^ exp;
+    }
+    return base;
+}
+
+def parseFactor() {
+    let t = peek();
+    if(t == "-") {
+        advance();
+        return 0 - parseFactor();
+    }
+    if(t == "+") {
+        advance();
+        return parseFactor();
+    }
+    return parsePower();
+}
+
+def parseTerm() {
+    let v = parseFactor();
+    loop(True) {
+        let t = peek();
+        if(t == "*") {
+            advance();
+            v = v * parseFactor();
+        } elif(t == "/") {
+            advance();
+            let d = parseFactor();
+            if(d == 0) {
+                println("错误: 除以零");
+                v = 0;
+            } else {
+                v = v / d;
+            }
+        } elif(t == "%") {
+            advance();
+            v = v % parseFactor();
+        } else {
+            break;
+        }
+    }
+    return v;
+}
+
+def parseExpr() {
+    let v = parseTerm();
+    loop(True) {
+        let t = peek();
+        if(t == "+") {
+            advance();
+            v = v + parseTerm();
+        } elif(t == "-") {
+            advance();
+            v = v - parseTerm();
+        } else {
+            break;
+        }
+    }
+    return v;
+}
+
+def evalExpr(src) {
+    tokenize(src);
+    POS[0] = 0;
+    return parseExpr();
+}
+
+let cases = ["1 + 2 * 3", "(1 + 2) * 3", "2 ^ 3 ^ 2", "2 ^ 3", "-5 + 8",
+             "10 / 4", "10 % 3", "pi * 2", "1 + 2 * pi - 4 / 2", "(1 + 2) * (3 + 4)"];
+for(src in cases) {
+    let v = evalExpr(src);
+    println(src, "  =  ", v);
+}
+

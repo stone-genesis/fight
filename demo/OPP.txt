@@ -1,0 +1,39 @@
+ code = """
+       class Person {
+            fields {
+                Name = "default";
+                Age = 0;
+                privateField = "hidden";
+            }
+
+            init(name, age) {
+                Name = name;
+                Age = age;
+            }
+
+            methods {
+                def GetName() {
+                    return Name;
+                }
+                def SetName(name){
+                    Name = name;
+                    println("setName is called");
+                }
+                def privateMethod() {
+                    println("private");
+                }
+                def ToLower(x){
+                    return x->lower();
+                }
+            }
+        }
+        let p = new Person("Tom", 20);
+        let flag = p->GetName();
+        println("flag: ${flag}");
+        println("flag: ${flag->isLower()}");
+        println(p->ToLower(p->GetName()->upper()));
+        println("xx|xx"->upper()->split("|")->combine("@"));
+
+        p->SetName("Peter");
+        println(p->GetName());
+    """

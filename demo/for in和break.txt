@@ -1,0 +1,15 @@
+import json
+let jsonString = '{"name":"Alice","age":25,"city":"Beijing"}';
+let obj = json.parse(jsonString);
+
+let counter = 0;
+for(key in json.keys(obj)){
+    $age = toInt(json.getVal(obj,'age'));
+    if(key=='age' and (age >= 25)){
+        json.setVal(obj,'age',14);
+        break;
+    }
+    println("counter=${counter}");
+    counter++;
+}
+println(json.getVal(obj,'age'));

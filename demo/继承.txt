@@ -1,0 +1,28 @@
+class Animal{
+fields{
+    Behavior = "Barking";
+    age = 123;
+}
+methods{
+    def GetAge(){
+        return age;
+    }
+    def ToString(){
+        return "Animal(age=${age},behavior=${Behavior}})";
+    }
+}
+init(){}
+}
+
+class Dog extends Animal{
+    init(){}
+}
+let animal = new Animal();
+println(animal->Behavior);
+println(animal->GetAge());
+println(animal);
+
+
+let d = new Dog();
+println(d->Behavior);
+println(d);

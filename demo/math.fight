@@ -1,0 +1,43 @@
+def factorial(n) {
+    if(n <= 1) { return 1; }
+    return n * factorial(n - 1);
+}
+def fibonacci(n) {
+    if(n < 2) { return n; }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+def power(base, exp) {
+    if(exp == 0) { return 1; }
+    if(exp % 2 == 0) {
+        let half = power(base, exp // 2);
+        return half * half;
+    }
+    return base * power(base, exp - 1);
+}
+def isPrime(n) {
+    if(n < 2) { return False; }
+    let isP = True;
+    let d = 2;
+    loop(d < n) {
+        if(n % d == 0) { isP = False; }
+        d = d + 1;
+    }
+    return isP;
+}
+def gcd(a, b) {
+    loop(b != 0) {
+        let t = b;
+        b = a % b;
+        a = t;
+    }
+    return a;
+}
+println("10!      = ", factorial(10));
+println("fib(20)  = ", fibonacci(20));
+println("3^10     = ", power(3, 10));
+let primes = [];
+for(n: 2 to 50) {
+    if(isPrime(n)) { primes->append(n); }
+}
+println("2~50 素数 = ", primes);
+println("gcd(56,98) = ", gcd(56, 98));

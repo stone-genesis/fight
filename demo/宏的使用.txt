@@ -1,0 +1,32 @@
+# 宏系统演示
+
+# 1. 简单宏定义
+macro PI => 3.14159;
+macro MAX_INT => 2147483647;
+
+# 2. 参数宏定义
+macro MAX(x, y) => if(x > y) x : y;
+macro MIN(x, y) => if(x < y) x : y;
+macro SQUARE(x) => x * x;
+macro ADD(x, y) => x + y;
+
+# 3. 复合宏（使用其他宏）
+macro CIRCLE_AREA(r) => PI * SQUARE(r);
+macro TRIANGLE_AREA(base, height) => 0.5 * base * height;
+
+# 4. 使用简单宏
+println("PI = ", PI);
+println("Max int = ", MAX_INT);
+
+# 5. 使用参数宏
+println("MAX(10, 20) = ", MAX(10, 20));
+println("MIN(10, 20) = ", MIN(10, 20));
+println("SQUARE(5) = ", SQUARE(5));
+println("ADD(10, 20) = ", ADD(10, 20));
+
+# 6. 使用复合宏
+println("Circle area with r=5: ", CIRCLE_AREA(5));
+println("Triangle area with base=10, height=8: ", TRIANGLE_AREA(10, 8));
+
+# 7. 嵌套宏调用
+println("Nested: MAX(SQUARE(3), 8) = ", MAX(SQUARE(3), 8));

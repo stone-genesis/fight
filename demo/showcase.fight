@@ -1,0 +1,230 @@
+# ==================== Fight 语言特性巡礼 ==================== #
+
+# ---------- 1. 变量 / 常量 / 运算符 ---------- #
+let name = "Fight";
+const VERSION = "1.0";
+let pi = 3.14;
+let big = 2 ^ 10;
+let fd = 7 // 2;
+let md = 7 % 3;
+println("name = ", name, ", VERSION = ", VERSION);
+println("2^10 = ", big, ", 7//2 = ", fd, ", 7%3 = ", md);
+
+# ---------- 2. 三元表达式 ---------- #
+let age = 20;
+let stage = if(age >= 18) "adult" : "minor";
+println("stage = ", stage);
+
+# ---------- 3. if / elif / else ---------- #
+let score = 86;
+if(score >= 90){
+    println("Grade A");
+} elif(score >= 80){
+    println("Grade B");
+} else {
+    println("Grade C");
+}
+
+# ---------- 4. 循环：for-range / for-in / loop / do-while ---------- #
+for(i: 1 to 5){
+    println("i = ${i}");
+}
+
+let fruits = ["apple", "banana", "cherry"];
+for(f in fruits){
+    if(f == "banana"){
+        break;
+    }
+    println("fruit = ", f);
+}
+
+let n = 0;
+loop(n < 3){
+    println("loop n = ", n);
+    n += 1;
+}
+
+let c = 10;
+do {
+    println("do-while c = ", c);
+    c -= 1;
+} while(c > 7)
+
+# ---------- 5. 数据结构：列表 / 字典 / 解构 ---------- #
+let nums = [1, 2, 3, 4, 5];
+println("nums[0] = ", nums[0]);
+nums->append(6);
+println("length = ", nums->length());
+
+let evens = nums->filter(def(x){ return x % 2 == 0; });
+println("evens = ", evens);
+
+let doubled = nums->map(def(x){ return x * 2; });
+println("doubled = ", doubled);
+
+let user = {name: "Alice", age: 25, tags: ["a", "b"]};
+println("user = ", user);
+println("user name = ", user{"name"});
+user{"age"} = 26;
+println("user age = ", user{"age"});
+
+let [first, _, second] = [10, 20, 30];
+let {dx, dy} = {dx: 3, dy: 4};
+println("first = ", first, ", second = ", second, ", dx = ", dx, ", dy = ", dy);
+
+# ---------- 6. 函数：普通 / 一句话 / 默认参数 / 可变参数 / 递归 ---------- #
+def add(x, y){
+    return x + y;
+}
+def square(x) => return x * x;
+def greet(who = "World"){
+    return "Hello, " + who + "!";
+}
+def sum_all(a, b, ...args){
+    let total = a + b;
+    for(item in args){
+        total += item;
+    }
+    return total;
+}
+def factorial(n){
+    if(n <= 1){
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+println("add(2,3) = ", add(2, 3));
+println("square(6) = ", square(6));
+println(greet());
+println(greet("Fight"));
+println("sum_all(1,2,3,4,5) = ", sum_all(1, 2, 3, 4, 5));
+println("5! = ", factorial(5));
+
+# ---------- 7. 匿名函数 / lambda / 高阶函数 / 函数组合 ---------- #
+let inc = def(x){ return x + 1; };
+let twice = lambda x: x * 2;
+println("inc(41) = ", inc(41));
+println("twice(21) = ", twice(21));
+
+def apply(f, x){
+    return f(x);
+}
+println("apply(square, 9) = ", apply(square, 9));
+
+let pipeline = inc & twice;
+println("pipeline(5) = ", pipeline(5));
+
+# ---------- 8. 宏 ---------- #
+macro PI => 3.14159;
+macro MAX(x, y) => if(x > y) x : y;
+macro SQUARE(x) => x * x;
+macro CIRCLE_AREA(r) => PI * SQUARE(r);
+println("PI = ", PI);
+println("MAX(10, 20) = ", MAX(10, 20));
+println("CIRCLE_AREA(5) = ", CIRCLE_AREA(5));
+
+macro repeat(times, body) {
+    for(k: 1 to times){
+        body;
+    }
+};
+repeat(2, println("hello from block macro!"));
+
+# ---------- 9. 字符串方法与插值 ---------- #
+# 注意：strip/upper/lower 会就地修改变量本身，需要保留原值请先拷贝 #
+let raw = "  Fight Lang  ";
+let cleaned = raw->strip();
+println("cleaned = [", cleaned, "]");
+let hasFight = cleaned->contains("Fight");
+println("contains 'Fight': ", hasFight);
+let up = cleaned->upper();
+println("upper = ", up);
+let csv = "a,b,c";
+let parts = csv->split(",");
+println("parts = ", parts);
+println("interp: 2^10 = ${big}");
+
+# ---------- 10. 结构体 ---------- #
+struct Point { x, y }
+let p = Point{x: 10, y: 20};
+println("p::x = ", p::x, ", p::y = ", p::y);
+p::x = 99;
+println("after assign, p::x = ", p::x);
+
+# ---------- 11. 枚举 ---------- #
+enum Color { RED, GREEN, BLUE }
+let color = enum::Color::GREEN;
+println("color = ", color);
+
+# ---------- 12. 类：字段 / init / 方法 / 静态 / 运算符重载 / 继承 ---------- #
+# 注意：按命名约定，小写开头的字段是 private，外部和运算符重载里要用大写开头的字段 #
+class Vector {
+    fields {
+        X = 0;
+        Y = 0;
+    }
+    operators {
+        def plus(other){
+            return new Vector(this->X + other->X, this->Y + other->Y);
+        }
+        def multiply(scalar){
+            return new Vector(this->X * scalar, this->Y * scalar);
+        }
+    }
+    methods {
+        def Norm(){
+            return this->X * this->X + this->Y * this->Y;
+        }
+        def ToString(){
+            return "Vector(X=${X}, Y=${Y})";
+        }
+    }
+    init(x, y){
+        this->X = x;
+        this->Y = y;
+    }
+}
+let v1 = new Vector(3, 4);
+let v2 = new Vector(1, 2);
+println("v1 + v2 = ", v1 + v2);
+println("v1 * 2 = ", v1 * 2);
+println("v1->Norm() = ", v1->Norm());
+
+class Animal {
+    fields {
+        Behavior = "Barking";
+        static Kind = "Canine";
+    }
+    methods {
+        def GetBehavior(){
+            return Behavior;
+        }
+    }
+    init(){}
+}
+class Dog extends Animal {
+    init(){}
+}
+let dog = new Dog();
+println("dog->Behavior = ", dog->Behavior);
+println("dog->GetBehavior() = ", dog->GetBehavior());
+println("Animal->Kind = ", Animal->Kind);
+
+# ---------- 13. switch ---------- #
+let day = 3;
+switch(day){
+    case (1) { println("Monday"); }
+    case (2) { println("Tuesday"); }
+    default { println("Other day"); }
+}
+
+# ---------- 14. match 表达式 ---------- #
+let num = 2;
+let word = match(num){
+    1 => "one",
+    2, 3 => "two or three",
+    else => "other"
+};
+println("num in words: ", word);
+
+println("========== showcase done ==========");

@@ -1,0 +1,46 @@
+def any(lst,cond){
+    for(x in lst){
+        if(cond(x)){
+            return True;
+        }
+    }
+    return False;
+}
+
+#
+    没有哪一个满足调节
+#
+def none(lst,cond){
+    for(x in lst){
+        if(cond(x)){
+            return False;
+        }
+    }
+    return True;
+}
+
+def all(lst,cond){
+     for(x in lst){
+        if(cond(x)==False){
+            return False;
+        }
+    }
+    return True;
+}
+
+def filter(lst,cond){
+    satisfied = [];
+    for(x in lst){
+        if(cond(x)){
+            satisfied->append(x);
+        }
+    }
+    return satisfied;
+}
+
+exports=[
+    "any",
+    "none",
+    "all",
+    "filter"
+]

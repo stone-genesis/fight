@@ -1,0 +1,67 @@
+# 将 JSON 字符串解析为对象 #
+def parse(jsonStr){
+    return jsonParse(jsonStr);
+}
+
+# 将对象转换为 JSON 字符串 #
+def stringify(obj){
+    return jsonStringify(obj,False);
+}
+
+# 将对象转换为格式化的 JSON 字符串（带缩进）#
+def stringifyPretty(obj){
+    return jsonStringify(obj,True);
+}
+
+# 通过路径获取 JSON 对象中的值 #
+# 路径格式: 'user.name' 或 'users.0.name' #
+def getVal(obj,path){
+    return jsonGet(obj,path);
+}
+
+#通过路径设置 JSON 对象中的值 #
+def setVal(obj,path,value){
+    return jsonSet(obj,path,value);
+}
+
+# 检查路径在 JSON 对象中是否存在 #
+def has(obj,path){
+    return jsonHas(obj,path);
+}
+
+# 获取 JSON 对象的所有键 #
+def keys(obj){
+    return jsonKeys(obj);
+}
+
+# 获取 JSON 对象的所有值 #
+def values(obj){
+    return jsonValues(obj);
+}
+
+exports = [
+    'parse',
+    'stringify',
+    'stringifyPretty',
+    'getVal',
+    'setVal',
+    'has',
+    'keys',
+    'values'
+]
+
+#
+#         import json
+#         let jsonStr = '{"name":"Alice","age":25,"city":"Beijing"}';
+#         let obj = json.parse(jsonStr);
+#         println(obj);
+#
+#         let val = json.getVal(obj,"city");
+#         println(val);
+#
+#         json.setVal(obj,"city","China");
+#         println(obj);
+#
+#         let zfc = json.stringify(obj);
+#         println(zfc,getType(zfc));
+#

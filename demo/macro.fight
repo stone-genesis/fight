@@ -1,0 +1,14 @@
+macro MAX(a, b) => if(a > b) a : b;
+macro AVG(a, b) => (a + b) / 2;
+macro KM_TO_M(km) => km * 1000;
+macro C_TO_F(c) => c * 9 / 5 + 32;
+
+println("MAX(7,42) = ", MAX(7, 42));
+println("AVG(3,7)  = ", AVG(3, 7));
+println("5 km      = ", KM_TO_M(5), " m");
+println("100 C     = ", C_TO_F(100), " F");
+
+macro repeat(times, body) {
+    for(k: 1 to times) { body; }
+};
+repeat(3, println("block macro!"));

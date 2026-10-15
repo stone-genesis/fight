@@ -1,0 +1,19 @@
+def add1(x) => return x + 1;
+def double(x) => return x * 2;
+def square(x) => return x * x;
+
+let pipeline = add1 & double & square;
+println("pipeline(3) = ", pipeline(3));
+
+def reduce(f, lst, acc0) {
+    let acc = acc0;
+    for(x in lst) { acc = f(acc, x); }
+    return acc;
+}
+def plus(a, b) { return a + b; }
+
+let nums = [1, 2, 3, 4, 5];
+println("sum      = ", reduce(plus, nums, 0));
+let evens = nums->filter(def(x){ return x % 2 == 0; });
+let squares = evens->map(def(x){ return x * x; });
+println("偶数平方  = ", squares, "  和 = ", reduce(plus, squares, 0));

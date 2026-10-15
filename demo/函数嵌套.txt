@@ -1,0 +1,7 @@
+ def fn(z){
+    def add(x,y){
+        return x + y;
+    }
+    return add(z,2);
+}
+println(fn(666));

@@ -1,0 +1,6 @@
+@annotation(id = 1, name = "myFunc", returnType = "int")
+def add(x, y){
+    return x + y;
+}
+let annot = GetFnAnnotations(add);
+println(annot{"id"},annot{"name"});

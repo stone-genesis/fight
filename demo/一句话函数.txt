@@ -1,0 +1,12 @@
+def add(x) => return x + 1;
+println(add(1));
+
+def double(x) => return x * 2;
+println(double(6));
+
+let combine = add & double;
+#
+input: 2
+2+1=3, 3*2=6
+#
+println(combine(2));

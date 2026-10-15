@@ -1,0 +1,31 @@
+   class Queue{
+        fields{
+            innerQueue = [];
+        }
+        methods{
+            def Enqueue(item){
+               innerQueue->append(item);
+            }
+            def Size(){
+                return innerQueue->length();
+            }
+            def Dequeue(){
+                if(innerQueue->length() >0){
+                     let temp = innerQueue[0];
+                     innerQueue->removeAt(0);
+                     return temp;
+                }
+            }
+            def Front(){
+                if(innerQueue->length() >0){
+                     return innerQueue[0];
+                }
+            }
+            def IsEmpty(){
+                return innerQueue->length() == 0;
+            }
+
+        }
+        init(){}
+}
+exports = ["Queue"]

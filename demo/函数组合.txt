@@ -1,0 +1,15 @@
+def compose(f, g) {
+    return def(x) {
+        return f(g(x));
+    };
+}
+def multiplyBy2(x) {
+    return x * 2;
+}
+def add10(x) {
+    return x + 10;
+}
+let combined = compose(multiplyBy2, add10);
+let numbers = [1, 2, 3, 4, 5];
+let results = numbers->map(combined);
+println(results);

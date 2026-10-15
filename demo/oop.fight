@@ -1,0 +1,30 @@
+class Vec {
+    fields { X = 0; Y = 0; }
+    operators {
+        def plus(other) { return new Vec(this->X + other->X, this->Y + other->Y); }
+        def multiply(k) { return new Vec(this->X * k, this->Y * k); }
+    }
+    methods {
+        def Length() { return (this->X * this->X + this->Y * this->Y) ^ 0.5; }
+        def ToString() { return "Vec(${this->X}, ${this->Y})"; }
+    }
+    init(x, y) { this->X = x; this->Y = y; }
+}
+let a = new Vec(3, 4);
+let b = new Vec(1, 2);
+println("a + b  = ", a + b);
+println("a * 3  = ", a * 3);
+println("|a|    = ", a->Length());
+
+class Shape {
+    fields { Name = "shape"; }
+    methods { def Describe() { return "I am a " + this->Name; } }
+    init() {}
+}
+class Circle extends Shape {
+    fields { Radius = 0; }
+    methods { def Area() { return 3.14159 * this->Radius * this->Radius; } }
+    init(r) { super(); this->Name = "circle"; this->Radius = r; }
+}
+let c = new Circle(2);
+println(c->Describe(), ", area = ", c->Area());

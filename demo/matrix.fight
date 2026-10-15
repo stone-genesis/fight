@@ -1,0 +1,198 @@
+# ============================================================ #
+#  矩阵运算库：运算符重载 + 高斯消元求行列式                     #
+#  用到：class / operators / ToString / 嵌套列表 / 方法内部调用   #
+# ============================================================ #
+
+class Matrix {
+    fields {
+        Rows = 0;
+        Cols = 0;
+        Data = [];
+    }
+
+    operators {
+        # 矩阵加法：A + B #
+        def plus(other) {
+            let data = this->Data;
+            let rows = this->Rows;
+            let cols = this->Cols;
+            let result = [];
+            for(i: 0 to rows - 1) {
+                let arow = data[i];
+                let brow = other->Data[i];
+                let out = [];
+                for(j: 0 to cols - 1) {
+                    out->append(arow[j] + brow[j]);
+                }
+                result->append(out);
+            }
+            return new Matrix(rows, cols, result);
+        }
+
+        # 矩阵乘法：A * B #
+        def multiply(other) {
+            let data = this->Data;
+            let rows = this->Rows;
+            let mid = this->Cols;
+            let cols = other->Cols;
+            let result = [];
+            for(i: 0 to rows - 1) {
+                let out = [];
+                let arow = data[i];
+                for(j: 0 to cols - 1) {
+                    let sum = 0;
+                    for(k: 0 to mid - 1) {
+                        let brow = other->Data[k];
+                        sum = sum + arow[k] * brow[j];
+                    }
+                    out->append(sum);
+                }
+                result->append(out);
+            }
+            return new Matrix(rows, cols, result);
+        }
+
+        # 矩阵相等：A == B #
+        def eq(other) {
+            if(this->Rows != other->Rows) {
+                return False;
+            }
+            if(this->Cols != other->Cols) {
+                return False;
+            }
+            let data = this->Data;
+            for(i: 0 to this->Rows - 1) {
+                let arow = data[i];
+                let brow = other->Data[i];
+                for(j: 0 to this->Cols - 1) {
+                    if(arow[j] != brow[j]) {
+                        return False;
+                    }
+                }
+            }
+            return True;
+        }
+    }
+    methods {
+        def Get(i, j) {
+            let row = this->Data[i];
+            return row[j];
+        }
+
+        def Set(i, j, v) {
+            let row = this->Data[i];
+            row->setAt(j, v);
+            return this;
+        }
+
+        # 标量乘法（不走运算符重载，用方法更清晰）#
+        def Scale(k) {
+            let rows = this->Rows;
+            let cols = this->Cols;
+            let data = this->Data;
+            let result = [];
+            for(i: 0 to rows - 1) {
+                let arow = data[i];
+                let out = [];
+                for(j: 0 to cols - 1) {
+                    out->append(arow[j] * k);
+                }
+                result->append(out);
+            }
+            return new Matrix(rows, cols, result);
+        }
+
+        def Transpose() {
+            let rows = this->Rows;
+            let cols = this->Cols;
+            let data = this->Data;
+            let result = [];
+            for(j: 0 to cols - 1) {
+                let out = [];
+                for(i: 0 to rows - 1) {
+                    let arow = data[i];
+                    out->append(arow[j]);
+                }
+                result->append(out);
+            }
+            return new Matrix(cols, rows, result);
+        }
+
+        def Trace() {
+            let sum = 0;
+            for(i: 0 to this->Rows - 1) {
+                let row = this->Data[i];
+                sum = sum + row[i];
+            }
+            return sum;
+        }
+        # 高斯消元求行列式 #
+        def Determinant() {
+            let n = this->Rows;
+            let m = [];
+            for(i: 0 to n - 1) {
+                let src = this->Data[i];
+                let row = [];
+                for(j: 0 to n - 1) {
+                    row->append(src[j]);
+                }
+                m->append(row);
+            }
+            let det = 1;
+            for(col: 0 to n - 1) {
+                # 选主元（绝对值最大）
+                let pivot = 0;
+                let best = 0;
+                for(r: col to n - 1) {
+                    let rr = m[r];
+                    let a = rr[col];
+                    if(a < 0) {
+                        a = 0 - a;
+                    }
+                    if(a > best) {
+                        best = a;
+                        pivot = r;
+                    }
+                }
+                if(best == 0) {
+                    return 0;
+                }
+                if(pivot != col) {
+                    let tmp = m[col];
+                    m->setAt(col, m[pivot]);
+                    m->setAt(pivot, tmp);
+                    det = 0 - det;
+                }
+                let prow = m[col];
+                let pval = prow[col];
+                det = det * pval;
+                # 消掉这一列的其他元素
+                for(r: 0 to n - 1) {
+                    if(r != col) {
+                        let rrow = m[r];
+                        let f = rrow[col] / pval;
+                        for(c: 0 to n - 1) {
+                            let pv = prow[c];
+                            rrow->setAt(c, rrow[c] - f * pv);
+                        }
+                    }
+                }
+            }
+            return det;
+        }
+
+        def ToString() {
+            let out = "";
+            let data = this->Data;
+            for(i: 0 to this->Rows - 1) {
+                let row = data[i];
+                let line = "";
+                for(j: 0 to this->Cols - 1) {
+                    line = line + row[j] + "\t";
+                }
+                out = out + line + "\n";
+            }
+            return out;
+        }
+    }
+}

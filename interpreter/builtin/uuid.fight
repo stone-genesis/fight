@@ -1,0 +1,27 @@
+def uuid1(){
+    return f_uuid1();
+}
+def uuid4(){
+    return f_uuid4();
+}
+def shortId(){
+    return f_shortId();
+}
+def snowflakeId(){
+    return f_snowflakeId();
+}
+def nanoid(){
+    return f_nanoid();
+}
+def timestampId(){
+    return f_timestampId();
+}
+
+exports = [
+    "uuid1",
+    "uuid4",
+    "shortId",
+    "snowflakeId",
+    "nanoid",
+    "timestampId",
+]

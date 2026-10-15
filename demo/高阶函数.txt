@@ -1,0 +1,25 @@
+def inc(int x){
+        return x+1;
+}
+println(y);
+let a = 1.2;
+println(y+1+inc(x));
+println(a + 1 * 2);
+
+let fn = lambda x: x+1;
+println(fn(12333234235235));
+
+let sum = <<x, y>> =>{
+    return x + y();
+};
+
+let matrixFn = def(x,y){
+    let z = x+y+1;
+    println("z  =",z);
+};
+matrixFn(1.1,2);
+println("sum: ",sum(2,def(){
+    if(True) {
+        return 100;
+    }
+}));

@@ -1,0 +1,90 @@
+let pi = f_pi();
+
+def sqrt(x){
+    return f_sqrt(x);
+}
+def pow(base,exp){
+    return f_pow(base,exp);
+}
+
+def factorial(x){
+    return f_factorial(x);
+}
+
+def sin(x){
+    return f_sin(x);
+}
+def cos(x){
+    return f_cos(x);
+}
+def tan(x){
+    return f_tan(x);
+}
+
+def asin(x){
+    return f_asin(x);
+}
+def acos(x){
+    return f_acos(x);
+}
+
+def atan(x){
+    return f_atan(x);
+}
+def exp(x){
+    return f_exp(x);
+}
+
+def log(x){
+    return f_log(x);
+}
+def ceil(x){
+    return f_ceil(x);
+}
+
+def floor(x){
+    return f_floor(x);
+}
+def round(x){
+    return f_round(x);
+}
+
+def lcm(a,b){
+    return f_lcm(a,b);
+}
+def gcd(a,b){
+    return f_gcd(a,b);
+}
+
+exports = [
+    "pi",
+    "sqrt",
+    "pow",
+    "factorial",
+    "sin",
+    "cos",
+    "tan",
+
+    "atan",
+    "asin",
+    "acos",
+
+    "lcm",
+    "gcd",
+
+    "round",
+    "ceil",
+    "floor",
+    "log",
+    "exp",
+]
+
+#
+# 例子：
+# import math
+#        let x = math.pow(2,3);
+#        println(x);
+#        println(math.factorial(3));
+#        println(math.round(3.56));
+#        println(math.pi);
+#

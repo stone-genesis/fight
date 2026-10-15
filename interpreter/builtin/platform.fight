@@ -1,0 +1,52 @@
+def osName(){
+    return f_osName();
+}
+def osVersion(){
+    return f_osVersion();
+}
+def pyVersion(){
+    return f_pythonVersion();
+}
+def cpuCount(){
+    return f_cpuCount();
+}
+
+def homeDir(){
+    return f_homeDir();
+}
+
+def currentDir(){
+    return f_currentDir();
+}
+
+#
+不支持默认参数？
+def getEnv(name, default=""){
+    return f_getEnv(name,default);
+}
+#
+
+def setEnv(name, value){
+    f_setEnv(name, value);
+}
+
+def exit(code){
+    f_exit(code);
+}
+
+def execute(cmd){
+    return f_execute();
+}
+
+exports =[
+    "osName",
+    "pyVersion",
+    "osVersion",
+    "cpuCount",
+    "homeDir",
+    "currentDir",
+    "getEnv",
+    "setEnv",
+    "exit",
+    "execute",
+]
