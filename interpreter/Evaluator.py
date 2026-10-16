@@ -908,6 +908,18 @@ class Evaluator:
     def evaluate_function_call(self, node):
         name = node.name
 
+        # ===== 链式调用：name 是表达式节点（如 f(x)(y)、arr[0]()、obj{"k"}()）=====
+        if not isinstance(name, str):
+            func_val = self.evaluate(name)
+            temp_name = f"__chain_fn_{id(node)}__"
+            self.environment[temp_name] = func_val
+            node.name = temp_name
+            try:
+                return self.evaluate_function_call(node)
+            finally:
+                node.name = name
+                self.environment.pop(temp_name, None)
+
         # 检查是否是宏调用
         if 'macros' in self.environment and name in self.environment['macros']:
             macro_info = self.environment['macros'][name]
@@ -3295,51 +3307,36 @@ class Evaluator:
         start_value = self.evaluate(node.start_num)
         end_value = self.evaluate(node.end_num)
 
-        # 判断是不是小数
-        if type(start_value) == float:
-            raise TypeError(f"only support integer, but got float {start_value}")
-        if type(end_value) == float:
-            raise TypeError(f"only support integer, but got float {end_value}")
+        # 可选步长（默认 1），支持小数
+        step_value = self.evaluate(node.step) if node.step is not None else 1
+        if step_value <= 0:
+            raise ValueError(f"step must be positive, got {step_value}")
 
         # 只保存循环变量自身之前的状态。
         # 注意：不能对整个环境做快照还原，否则循环体内对其他变量的赋值会被回滚掉
         had_loop_var = node.var_name in self.environment
         old_loop_var_value = self.environment.get(node.var_name)
 
-        # 设置初始变量
-        self.environment[node.var_name] = -100
+        # 方向：起点 <= 终点 递增，否则递减
+        direction = 1 if start_value <= end_value else -1
 
-        # for(idx: 1..10){} 递增类型（起始值等于结束值时也要执行一次）
-        if start_value <= end_value:
-            # 遍历每个元素
-            for i in range(start_value, end_value + 1):
-                # print("i = ",i)
-                self.environment[node.var_name] = i
-                try:
-                    for statement in node.body:
-                        if isinstance(statement, ReturnNode):
-                            return {"fight_tag": True, "value": self.evaluate(statement.value)}
-                        result = self.evaluate(statement)
-                        if isinstance(result, dict) and result.get("fight_tag") is True:
-                            return result
-                except BreakException:
-                    break
-
-        # for(idx: 10..1){} 倒退类型
-        if start_value > end_value:
-            # 遍历每个元素
-            for i in range(start_value, end_value - 1, -1):
-                # print("i = ",i)
-                self.environment[node.var_name] = i
-                try:
-                    for statement in node.body:
-                        if isinstance(statement, ReturnNode):
-                            return {"fight_tag": True, "value": self.evaluate(statement.value)}
-                        result = self.evaluate(statement)
-                        if isinstance(result, dict) and result.get("fight_tag") is True:
-                            return result
-                except BreakException:
-                    break
+        # 用 start + k*step 计算当前值，避免浮点累加误差
+        eps = 1e-12
+        k = 0
+        i = start_value
+        while (i <= end_value + eps) if direction > 0 else (i >= end_value - eps):
+            self.environment[node.var_name] = i
+            try:
+                for statement in node.body:
+                    if isinstance(statement, ReturnNode):
+                        return {"fight_tag": True, "value": self.evaluate(statement.value)}
+                    result = self.evaluate(statement)
+                    if isinstance(result, dict) and result.get("fight_tag") is True:
+                        return result
+            except BreakException:
+                break
+            k += 1
+            i = start_value + direction * k * step_value
 
         # 只还原循环变量，循环体内产生的其他副作用要保留
         if had_loop_var:
@@ -4527,13 +4524,12 @@ class Evaluator:
 
     def evaluate_multi_list_index(self, node: MultiListIndexNode):
         # =========================版本2==============================
-        # isinstance 会检查 node.list_name 是否是这个元组中任何一个类型的实例。
-        if isinstance(node.list_name, (ListIndexNode, ObjectIndexNode, MultiListIndexNode)):
-            current_result = self.evaluate(node.list_name)
-        else:
+        if isinstance(node.list_name, str):
             if node.list_name not in self.environment:
                 raise NameError(f"List '{node.list_name}' not defined")
             current_result = self.environment[node.list_name]
+        else:
+            current_result = self.evaluate(node.list_name)
 
         for dim_indexes in node.index_list:
             start_index = self.evaluate(dim_indexes[0])
@@ -4548,14 +4544,13 @@ class Evaluator:
 
     def evaluate_list_index(self, node: ListIndexNode):
 
-        # ====================版本2===============================
-        # 如果 node.list_name 是 ObjectIndexNode 或 ListIndexNode，先评估它
-        if isinstance(node.list_name, (ObjectIndexNode, ListIndexNode, MultiListIndexNode)):
-            lst = self.evaluate(node.list_name)
-        else:
+        # 如果 list_name 是字符串（变量名）从环境查；否则是表达式节点，先求值
+        if isinstance(node.list_name, str):
             if node.list_name not in self.environment:
                 raise NameError(f"List '{node.list_name}' not defined")
             lst = self.environment[node.list_name]
+        else:
+            lst = self.evaluate(node.list_name)
 
         start_index = self.evaluate(node.start_index)
 

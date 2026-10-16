@@ -9,6 +9,6 @@ println("5 km      = ", KM_TO_M(5), " m");
 println("100 C     = ", C_TO_F(100), " F");
 
 macro repeat(times, body) {
-    for(k: 1 to times) { body; }
+    for(k: 1..times) { body; }
 };
 repeat(3, println("block macro!"));

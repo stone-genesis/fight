@@ -185,6 +185,8 @@ class Parser:
 
         elif self.currentTokenValue() == 'loop':
             return self.loop_statement()
+        elif self.currentTokenValue() == 'while':
+            return self.while_statement()
         elif self.currentTokenValue() == 'break':
             return self.break_statement()
         # elif self.currentTokenType() == 'KEYWORD' and self.currentTokenValue() == 'function':
@@ -1506,7 +1508,7 @@ class Parser:
         self.eatCurrentTokenType("ASSIGN")  # =
 
         start = self.expr()
-        self.eatCurrentTokenType("KEYWORD")  # to
+        self.eatCurrentTokenType("RANGE")  # ..
         end = self.expr()
 
         # step
@@ -2236,8 +2238,14 @@ class Parser:
         if self.currentTokenType() == 'COLON':
             self.eatCurrentTokenType('COLON')  # :
             start_value = self.expr()
-            self.eatCurrentTokenType('KEYWORD')  # to
+            # 区间分隔符：..
+            self.eatCurrentTokenType('RANGE')  # ..
             end_value = self.expr()
+            # 可选步长 step
+            step = None
+            if self.currentTokenValue() == 'step':
+                self.eatCurrentTokenType('KEYWORD')  # step
+                step = self.expr()
             self.eatCurrentTokenType("RPAREN")  # )
             self.eatCurrentTokenType("LBRACE")  # {
             # block statements
@@ -2245,7 +2253,7 @@ class Parser:
             while self.currentTokenType() != 'RBRACE':
                 block_statements.append(self.statement())
             self.eatCurrentTokenType("RBRACE")  # }
-            return ForRangeNumberNode(var_name, start_value, end_value, block_statements)
+            return ForRangeNumberNode(var_name, start_value, end_value, block_statements, step)
 
         # for in语法
         if self.currentTokenValue() == 'in':
@@ -2365,6 +2373,19 @@ class Parser:
         self.eatCurrentTokenType("RBRACE")  # }
         return LoopNode(condition, block_statements)
 
+    def while_statement(self):
+        # 单独的 while(cond){} 循环，语义与 loop 一致
+        self.eatCurrentTokenType('KEYWORD')  # while
+        self.eatCurrentTokenType("LPAREN")  # (
+        condition = self.expr()
+        self.eatCurrentTokenType("RPAREN")  # )
+        self.eatCurrentTokenType("LBRACE")  # {
+        block_statements = []
+        while self.currentTokenType() != 'RBRACE':
+            block_statements.append(self.statement())
+        self.eatCurrentTokenType("RBRACE")  # }
+        return LoopNode(condition, block_statements)
+
     def let_statement(self):
         """
                 let 语句得到的节点就是： name = value;
@@ -2451,9 +2472,19 @@ class Parser:
     def function_call_expr(self):
         expr = self.parse_single_function_call()
 
-        # 解析连续的函数调用
-        while self.currentTokenType() == 'LPAREN':
-            expr = self.parse_single_function_call(expr)
+        # 解析连续后缀：() [] {} -> 等任意组合（链式访问）
+        while True:
+            t = self.currentTokenType()
+            if t == 'LPAREN':
+                expr = self.parse_single_function_call(expr)
+            elif t == 'LBRACKET':
+                expr = self.parse_index_suffix(expr)
+            elif t == 'LBRACE':
+                expr = self.parse_object_index_suffix(expr)
+            elif t == 'MINUS' and self.peekNextTokenType() == 'GT':
+                expr = self.get_member_expr_or_method_call_expr({"name": "anonymous", "val": expr})
+            else:
+                break
 
         return expr
 
@@ -2497,6 +2528,26 @@ class Parser:
             self.eatCurrentTokenType('END')
 
         return FunctionCallNode(name, args, named_arg_values)
+
+    def parse_index_suffix(self, node):
+        """对任意表达式 node 做 [start:end] 索引，返回 ListIndexNode。"""
+        while self.currentTokenType() == 'LBRACKET':
+            self.eatCurrentTokenType('LBRACKET')  # [
+            start_index = self.expr()
+            end_index = None
+            if self.currentTokenType() == 'COLON':
+                self.eatCurrentTokenType('COLON')
+                end_index = self.expr()
+            self.eatCurrentTokenType('RBRACKET')  # ]
+            node = ListIndexNode(node, start_index, end_index)
+        return node
+
+    def parse_object_index_suffix(self, node):
+        """对任意表达式 node 做 {key} 字典访问，返回 ObjectIndexNode。"""
+        self.eatCurrentTokenType('LBRACE')  # {
+        key = self.expr()
+        self.eatCurrentTokenType('RBRACE')  # }
+        return ObjectIndexNode(node, key)
 
     def arithmetic_expr(self):
         """解析加减法表达式，如 a + b、a - b（优先级介于比较运算和乘除法之间）"""

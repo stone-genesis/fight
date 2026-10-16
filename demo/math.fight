@@ -36,7 +36,7 @@ println("10!      = ", factorial(10));
 println("fib(20)  = ", fibonacci(20));
 println("3^10     = ", power(3, 10));
 let primes = [];
-for(n: 2 to 50) {
+for(n: 2..50) {
     if(isPrime(n)) { primes->append(n); }
 }
 println("2~50 素数 = ", primes);

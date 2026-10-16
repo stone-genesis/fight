@@ -366,7 +366,7 @@ println(utils.helper());
 # 运行特性巡礼
 python run.py demo/showcase.fight
 
-# 运行单元测试（42 个用例）
+
 python -m unittest tests.test_language -v
 ```
 

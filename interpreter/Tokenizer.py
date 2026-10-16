@@ -162,7 +162,7 @@ class Tokenizer:
         if self.current_char == '-':
             result += self.current_char
             self.advance()
-        while self.current_char is not None and (self.current_char.isdigit() or (self.current_char == '.')):
+        while self.current_char is not None and (self.current_char.isdigit() or (self.current_char == '.' and self.peek_next() != '.')):
             result += self.current_char
             self.advance()
         if '.' in result:
@@ -383,6 +383,11 @@ class Tokenizer:
                 if self.isEllipsis():
                     tokens.append(('ELLIPSIS', '...'))
                     self.advance()
+                    self.advance()
+                    self.advance()
+                # 检查是否是两个点 ..（区间，如 for(i: 0..n)）
+                elif self.peek_next() == '.':
+                    tokens.append(('RANGE', '..'))
                     self.advance()
                     self.advance()
                 else:
