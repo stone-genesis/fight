@@ -35,21 +35,101 @@ class BreakException(Exception):
     """自定义异常，用于处理循环中的 break 语句"""
     pass
 
+
+class Environment:
+    """带 parent 链的环境，实现词法作用域。
+
+    parent 可以是另一个 Environment，也可以是普通 dict（兼容模块环境等旧代码）。
+    变量查找沿链向上；赋值沿链找到"拥有该变量"的那一层写回，找不到才写本层。
+    """
+    def __init__(self, parent=None):
+        self.parent = parent
+        self._values = {}
+
+    @staticmethod
+    def _values_of(env):
+        return env._values if isinstance(env, Environment) else env
+
+    def _find(self, name):
+        env = self
+        while env is not None:
+            values = self._values_of(env)
+            if name in values:
+                return values
+            env = env.parent if isinstance(env, Environment) else None
+        return None
+
+    def get(self, name, default=None):
+        values = self._find(name)
+        return values[name] if values is not None else default
+
+    def __getitem__(self, name):
+        values = self._find(name)
+        if values is None:
+            raise KeyError(name)
+        return values[name]
+
+    def __contains__(self, name):
+        return self._find(name) is not None
+
+    def __setitem__(self, name, value):
+        values = self._find(name)
+        if values is None:
+            values = self._values
+        values[name] = value
+
+    def define(self, name, value):
+        self._values[name] = value
+
+    def copy(self):
+        new = Environment(self.parent)
+        new._values = dict(self._values)
+        return new
+
+    def update(self, mapping):
+        for k, v in mapping.items():
+            self._values[k] = v
+
+    def keys(self):
+        return self._values.keys()
+
+    def values(self):
+        return self._values.values()
+
+    def items(self):
+        return self._values.items()
+
+    def pop(self, name, default=None):
+        if name in self._values:
+            return self._values.pop(name)
+        return default
+
+    def __delitem__(self, name):
+        if name in self._values:
+            del self._values[name]
+
+    def __iter__(self):
+        return iter(self._values)
+
+    def __len__(self):
+        return len(self._values)
+
+    def __repr__(self):
+        return f"Environment({self._values})"
+
+
 class Evaluator:
     def __init__(self):
         # 环境变量
-        self.environment = {
-            "arg_to_instance": {
-                # "painterVan": "x",
-            },  # 建立传入参数和实例的映射，用于多态的实现  {形参: 实参, 形参: 实参}
-            "instances": {},  # 记录创建的类的实例
-            "constants": [],  # 记录声明的常量
-            "objects": {},  # 导入的类exports和创建的对象
-            "interfaces": {},  # 记录接口
-            "structs": {},  # 记录结构体
-            "enums": {},  # 记录枚举类型
-            "macros": {},  # 记录宏定义
-        }
+        self.environment = Environment()
+        self.environment.define("arg_to_instance", {})  # 建立传入参数和实例的映射，用于多态的实现
+        self.environment.define("instances", {})  # 记录创建的类的实例
+        self.environment.define("constants", [])  # 记录声明的常量
+        self.environment.define("objects", {})  # 导入的类exports和创建的对象
+        self.environment.define("interfaces", {})  # 记录接口
+        self.environment.define("structs", {})  # 记录结构体
+        self.environment.define("enums", {})  # 记录枚举类型
+        self.environment.define("macros", {})  # 记录宏定义
         # 保存一份内建环境快照
         self._builtin_env = self.environment
         self.current_object = None  # 当前this指向的对象
@@ -1612,7 +1692,8 @@ class Evaluator:
                 )
 
             # 否则，本地函数
-            return self.call_function(func_dict, node.args, self.environment, node.named_arg_values)
+            closure_env = func_dict.get("__closure_env__", self.environment)
+            return self.call_function(func_dict, node.args, closure_env, node.named_arg_values)
 
         # =================================================================
         # 内建工具类检查
@@ -1874,7 +1955,8 @@ class Evaluator:
                 )
 
             # 否则，本地函数
-            return self.call_function(func_dict, node.args, self.environment, node.named_arg_values)
+            closure_env = func_dict.get("__closure_env__", self.environment)
+            return self.call_function(func_dict, node.args, closure_env, node.named_arg_values)
 
         raise NameError(f"Function '{name}' not defined")
 
@@ -1889,40 +1971,25 @@ class Evaluator:
         defaults = func_dict.get("defaults", {})
         vararg_name = func_dict.get("vararg_name", None)  # 获取可变参数名
         
-        call_env = {}
-        # 内建函数（兜底）
-        call_env.update(self._builtin_env)
+        # 新建子环境，parent 指向定义环境；自由变量沿链可读写到定义环境
+        call_env = Environment(module_env)
 
-        #  外部调用环境（可选）
-        call_env.update(self.environment)
-        
-        # 保存主环境中的关键数据（在更新 module_env 之前）
-        main_objects = self.environment.get('objects', {})
-        main_interfaces = self.environment.get('interfaces', {})
-        main_structs = self.environment.get('structs', {})
-        main_enums = self.environment.get('enums', {})
+        # 合并主环境与模块环境的注册表（让模块函数能访问主程序定义的类/结构体/枚举等）
+        for key in ('objects', 'interfaces', 'structs', 'enums'):
+            main_val = self.environment.get(key, {})
+            if main_val:
+                existing = call_env.get(key, {})
+                merged = dict(existing)
+                merged.update(main_val)
+                call_env.define(key, merged)
 
-        # 模块定义环境（最高优先级）
-        call_env.update(module_env)
-        
-        # 关键修复：合并主环境和模块环境的 objects 等
-        # 让模块函数能访问到主程序中定义的类
-        if main_objects:
-            call_env.setdefault('objects', {}).update(main_objects)
-        if main_interfaces:
-            call_env.setdefault('interfaces', {}).update(main_interfaces)
-        if main_structs:
-            call_env.setdefault('structs', {}).update(main_structs)
-        if main_enums:
-            call_env.setdefault('enums', {}).update(main_enums)
-
-        # 再：默认参数
+        # 再：默认参数（define 到本层）
         for k, v in defaults.items():
-            call_env[k] = self.evaluate(v)
+            call_env.define(k, self.evaluate(v))
 
         # 然后：位置实参（绑定到普通参数）
         for name, arg in zip(func_args, args):
-            call_env[name] = self.evaluate(arg)
+            call_env.define(name, self.evaluate(arg))
 
         # 最后：命名实参（按名称覆盖），并做基本校验
         if named_args:
@@ -1933,7 +2000,7 @@ class Evaluator:
                 positional_count = min(len(func_args), len(args))
                 if param_name in func_args[:positional_count]:
                     raise TypeError(f"Multiple values for argument '{param_name}'")
-                call_env[param_name] = self.evaluate(value_node)
+                call_env.define(param_name, self.evaluate(value_node))
 
         # 处理可变参数：将多余的位置参数收集到一个列表中
         if vararg_name:
@@ -1944,7 +2011,7 @@ class Evaluator:
             for i in range(bound_count, len(args)):
                 varargs.append(self.evaluate(args[i]))
             # 绑定可变参数到环境
-            call_env[vararg_name] = varargs
+            call_env.define(vararg_name, varargs)
 
         # 切环境执行
         old_env = self.environment
@@ -2737,32 +2804,9 @@ class Evaluator:
             return mapped_result
 
         predicate_param_name = func_dict['args'][0]  # 形参名称,比如['x']
-
-        body_statements = func_dict['body']  # 函数体
-
-        local_scope = {}
-
-        previous_environment = self.environment.copy()
-
-        # filtered的结果
-        result = []
-        for element in xlist:
-            # 没迭代一个元素就更新一次环境
-            local_scope[predicate_param_name] = element
-            # 保存当前的环境，以便函数执行完后恢复
-            # 更新环境为局部作用域, 并执行函数体, 这样做，内部函数可以访问外界的变量
-            self.environment.update(local_scope)
-            # ==================执行方法体=============================
-            for statement in body_statements:
-                mapped_value = self.evaluate(statement)
-                if isinstance(statement, ReturnNode):
-                    # 如果符合predicate条件，则添加到结果列表中
-                    result.append(mapped_value)
-        # ========================恢复环境===================
-        # 恢复之前的环境
-        self.environment = previous_environment
-        # print("result: ", result)
-        return result
+        # 用定义时的闭包环境调用函数，保证闭包能访问其自由变量
+        closure_env = func_dict.get("__closure_env__", self.environment)
+        return [self.call_function(func_dict, [element], closure_env) for element in xlist]
 
     def filter_server(self, filter_predicate, xlist):
         """
@@ -2785,32 +2829,9 @@ class Evaluator:
             return filtered_result
 
         predicate_param_name = func_dict['args'][0]  # 形参名称,比如['x']
-        body_statements = func_dict['body']  # 函数体
-
-        local_scope = {}
-
-        previous_environment = self.environment.copy()
-
-        # filtered的结果
-        result = []
-        for element in xlist:
-            # 没迭代一个元素就更新一次环境
-            local_scope[predicate_param_name] = element
-            # 保存当前的环境，以便函数执行完后恢复
-            # 更新环境为局部作用域, 并执行函数体, 这样做，内部函数可以访问外界的变量
-            self.environment.update(local_scope)
-            # ==================执行方法体=============================
-            for statement in body_statements:
-                return_value = self.evaluate(statement)
-                if isinstance(statement, ReturnNode):
-                    # 如果符合predicate条件，则添加到结果列表中
-                    if return_value:
-                        result.append(element)
-        # ========================恢复环境===================
-        # 恢复之前的环境
-        self.environment = previous_environment
-        # print("result: ", result)
-        return result
+        # 用定义时的闭包环境调用函数
+        closure_env = func_dict.get("__closure_env__", self.environment)
+        return [element for element in xlist if self.call_function(func_dict, [element], closure_env)]
 
     # def evaluate_enum_access(self, node: EnumAccessNode):
     #     is_from_module = self.check_is_from_module(node.name)
@@ -4612,8 +4633,11 @@ class Evaluator:
             #
             "defaults": node.default_values,  # 假设在 AST 中传递默认值
             "vararg_name": node.vararg_name,  # 可变参数名
-        }
 
+            # 闭包保存的 __closure_env__ 是「指向定义时那个环境对象的引用」
+            # 词法作用域：记住定义时的环境，调用时从这里开始查找自由变量
+            "__closure_env__": self.environment,
+        }
         self.environment[node.name] = result
         return result
 
@@ -4891,6 +4915,8 @@ class Evaluator:
                 # evaluate_assignment中进行处理，对于 def main(){}这类函数，参数需要在
                 # evaluate_function_declaration中处理,这就是差异！！！
                 "defaults": node.value.default_values,  # 假设在 AST 中传递默认值
+                # 词法作用域：匿名函数同样记住定义时的环境
+                "__closure_env__": self.environment,
             }
         else:
             # =======================常量检查===============================
@@ -4902,8 +4928,11 @@ class Evaluator:
             # 否则，直接求值
             value = self.evaluate(node.value)
 
-            # 赋值
-            self.environment[node.name] = value
+            # 赋值：let 声明写本层（允许遮蔽外层同名变量）；普通赋值沿链写（改到定义环境）
+            if getattr(node, 'is_declaration', False) and isinstance(self.environment, Environment):
+                self.environment.define(node.name, value)
+            else:
+                self.environment[node.name] = value
             return value
 
     def evaluate_loop(self, node):

@@ -5,14 +5,9 @@ from interpreter.Tokenizer import Tokenizer
 if __name__ == '__main__':
     # 读取测试文件
     code = """
-           def testIf(x){
-                if(x==1){
-                    return 1;
-                }else{
-                    return 2;
-                }
-           }
-           print(testIf(3));
+            import stack
+            let s = new stack();
+            s.
     """
     # 测试： ReadText,Exists
     print("=================tokenizer======================\n")
@@ -34,7 +29,7 @@ if __name__ == '__main__':
     try:
         for node in ast:
             r = evaluator.evaluate(node)
-        
+        print(evaluator.environment)
         print("\n=================执行完成=====================")
     except Exception as e:
         print(f"\n=================发生错误=====================")

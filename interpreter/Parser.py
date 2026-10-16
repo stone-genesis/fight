@@ -392,7 +392,7 @@ class Parser:
 
         if self.currentTokenType() == "END":
             self.eatCurrentTokenType("END")  # ;
-        return AssignmentNode(var_name, var_value)
+        return AssignmentNode(var_name, var_value, is_declaration=True)
 
     def this_member_assign_statement(self):
         """
@@ -1262,7 +1262,7 @@ class Parser:
         const_value = self.expr()
         if self.currentTokenType() == "END":
             self.eatCurrentTokenType('END')  # ;
-        return AssignmentNode(const_name, const_value, True)
+        return AssignmentNode(const_name, const_value, True, is_declaration=True)
 
     def factor(self):
         """
@@ -2383,7 +2383,7 @@ class Parser:
         # 如果value是作为参数解析传递，应该做一个标记
         if self.currentTokenType() == 'END':
             self.eatCurrentTokenType('END')
-        return AssignmentNode(name, value)
+        return AssignmentNode(name, value, is_declaration=True)
 
     """
         解析赋值语句

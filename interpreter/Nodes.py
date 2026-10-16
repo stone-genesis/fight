@@ -227,11 +227,12 @@ class DecontructAssignNode(Node):
 
 class AssignmentNode(Node):
     # name = value
-    def __init__(self, name, value, is_constant=False,from_module=None):
+    def __init__(self, name, value, is_constant=False, from_module=None, is_declaration=False):
         self.name = name
         self.value = value
         self.is_constant = is_constant
         self.from_module = from_module
+        self.is_declaration = is_declaration
 
     def __repr__(self):
         return f"AssignmentNode(from_module={self.from_module},name={self.name}, value={self.value}, is_constant={self.is_constant})"
