@@ -26,7 +26,7 @@ if(score >= 90){
 }
 
 # ---------- 4. 循环：for-range / for-in / loop / do-while ---------- #
-for(i: 1 to 5){
+for(i: 1..5){
     println("i = ${i}");
 }
 
@@ -124,7 +124,7 @@ println("MAX(10, 20) = ", MAX(10, 20));
 println("CIRCLE_AREA(5) = ", CIRCLE_AREA(5));
 
 macro repeat(times, body) {
-    for(k: 1 to times){
+    for(k: 1..times){
         body;
     }
 };

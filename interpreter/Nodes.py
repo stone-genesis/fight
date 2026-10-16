@@ -54,14 +54,15 @@ class TryCatchFinallyNode(Node):
 
 # for(idx: 1..10){}
 class ForRangeNumberNode(Node):
-    def __init__(self, var_name, start_num, end_num, body):
+    def __init__(self, var_name, start_num, end_num, body, step=None):
         self.var_name = var_name  # 变量名
         self.start_num = start_num  # 开始数字
         self.end_num = end_num  # 结束数字
         self.body = body  # 循环体
+        self.step = step  # 步长（AST 节点，可选，默认 1）
 
     def __repr__(self):
-        return f"ForRangeNumberNode(var_name={self.var_name}, start_num={self.start_num}, end_num={self.end_num}, body={self.body})"
+        return f"ForRangeNumberNode(var_name={self.var_name}, start_num={self.start_num}, end_num={self.end_num}, body={self.body}, step={self.step})"
 
 
 # switch语句

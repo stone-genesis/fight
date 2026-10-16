@@ -13,13 +13,13 @@ println("Hello, Fight!");
 - 🧩 **极简语法** —— `let` 声明变量、`def` 定义函数、`{}` 代码块，尽量少写样板。
 - 🔢 **完整类型** —— 整数、浮点、字符串、布尔、列表 `[]`、字典 `{}`。
 - ⚙️ **现代运算符** —— 幂 `^`、整除 `//`、取余 `%`，逻辑 `and / or / not` 与 `&& / || / !`。
-- 🧠 **函数式** —— 高阶函数、匿名函数、`lambda`、函数组合 `&`、递归。
+- 🧠 **函数式** —— 高阶函数、闭包、匿名函数、`lambda`、函数组合 `&`、递归。
 - 🪄 **宏系统** —— 常量宏、参数宏、代码块宏，用宏扩展语言本身。
 - 🏛️ **面向对象** —— 类、`init` 构造、继承 `extends`、接口 `implements`、`super`、静态成员。
 - ➕ **运算符重载** —— 让自定义类型支持 `+ - * / ==` 等运算符。
 - 📦 **结构体 & 枚举** —— `struct` / `enum`。
 - 🧱 **模块系统** —— `import`、别名、选择性导入、`exports`，附带一批内置标准库。
-- 🎯 **丰富控制流** —— `if/elif/else`、三元表达式、`loop`、`for-in`、`for-range`、`do-while`、`switch`、`match`。
+- 🎯 **丰富控制流** —— `if/elif/else`、三元表达式、`loop`、`while`、`for-in`、`for-range`、`do-while`、`switch`、`match`。
 - 🈶 **中文友好** —— 中文注释、全角括号/冒号、字符串内插 `${}`。
 
 ---
@@ -38,10 +38,10 @@ git clone <你的仓库地址>
 cd <仓库名>
 
 # 运行特性巡礼脚本
-python run.py showcase.fight
+python run.py demo/showcase.fight
 
-# 运行任意脚本（.fight 或 .txt 均可）
-python run.py demo/宏的使用.txt
+# 运行任意脚本
+python run.py demo/macro_usage.fight
 
 # 查看解释器内部的 词法分析 → 语法分析 → 求值 流程
 python main.py
@@ -108,6 +108,48 @@ let pipeline = inc & twice;               # 函数组合：先 inc 再 twice
 println(pipeline(5));                     # 12
 ```
 
+### 闭包与柯里化
+
+```text
+# 闭包：函数记住定义时的环境
+def makeAdder(n) {
+    return def(x) { return x + n; };
+}
+let add5 = makeAdder(5);
+let add10 = makeAdder(10);
+println(add5(3), add10(3));              # 8 13
+
+# 闭包读写外部变量（计数器）
+def makeCounter() {
+    let count = 0;
+    return def() {
+        count = count + 1;
+        return count;
+    };
+}
+let counter = makeCounter();
+counter();
+counter();
+println(counter());                      # 3
+
+# 柯里化：多参数函数拆成一串单参数函数
+def add(x) {
+    return def(y) { return x + y; };
+}
+let addOne = add(1);
+println(addOne(100));                     # 101
+
+# 多层柯里化
+def multiply(a) {
+    return def(b) {
+        return def(c) { return a * b * c; };
+    };
+}
+let m = multiply(2);
+let m2 = m(3);
+println(m2(4));                           # 24
+```
+
 ### 宏
 
 ```text
@@ -119,7 +161,7 @@ println(MAX(10, 20));                    # 20
 println(AREA(5));                        # 78.53975
 
 macro repeat(times, body) {              # 代码块宏
-    for(k: 1 to times) { body; }
+    for(k: 1..times) { body; }
 };
 repeat(3, println("hello from macro!"));
 ```
@@ -137,14 +179,19 @@ else { println("C"); }
 let age = 20;
 let stage = if(age >= 18) "adult" : "minor";
 
-# for-range / for-in / loop / do-while
-for(i: 1 to 5) { println("i = ${i}"); }
+# for-range（支持 step 和小数步长） / for-in / loop / while / do-while
+for(i: 1..5) { println("i = ${i}"); }
+
+for(i: 1..5 step 2) { println("i = ${i}"); }   # 1 3 5
 
 let fruits = ["apple", "banana"];
 for(f in fruits) { println(f); }
 
 let n = 0;
 loop(n < 3) { n += 1; }
+
+let m = 0;
+while(m < 3) { m += 1; }
 
 do { n -= 1; } while(n > 0)
 
@@ -296,7 +343,6 @@ println(utils.helper());
 .
 ├── main.py                 # 演示入口：词法分析 → 语法分析 → 求值
 ├── run.py                  # 脚本运行器：python run.py <file.fight>
-├── showcase.fight          # 特性巡礼（推荐先跑这个）
 ├── interpreter/            # 解释器核心
 │   ├── Tokenizer.py        #   词法分析器
 │   ├── Parser.py           #   语法分析器（生成 AST）
@@ -308,7 +354,8 @@ println(utils.helper());
 │   ├── ModuleNodes.py      #   模块相关节点
 │   ├── builtin/            #   内置标准库（*.fight）
 │   └── utils/              #   运行时工具类
-└── demo/                   # 示例脚本
+├── tests/                  # 单元测试（python -m unittest tests.test_language）
+└── demo/                   # 示例脚本（showcase.fight 特性巡礼 + 各特性示例）
 ```
 
 ---
@@ -316,12 +363,14 @@ println(utils.helper());
 ## 🧪 测试
 
 ```bash
-python run.py showcase.fight
-python run.py demo/宏的使用.txt
-python run.py demo/枚举的使用.txt
+# 运行特性巡礼
+python run.py demo/showcase.fight
+
+# 运行单元测试（48 个用例）
+python -m unittest tests.test_language -v
 ```
 
-`demo/` 目录下还有递归、继承、运算符重载、函数组合、注解等 20 余个示例。
+`demo/` 目录下有递归、继承、运算符重载、函数组合、注解、宏等 20 余个示例。
 
 ---
 
